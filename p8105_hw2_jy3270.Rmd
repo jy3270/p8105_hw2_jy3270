@@ -1,0 +1,97 @@
+---
+title: "p8105_hw2_jy3270"
+author: "Jingya Yu"
+date: "2022-10-04"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# load all libraries
+library(tidyverse)
+library(readr)
+library(readxl)
+library(tidyr)
+```
+
+# Problem 1
+#### read in data
+```{r}
+original <- read_csv(file = "./NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% janitor::clean_names()
+```
+- clean data
+
+```{r}
+nyc_transit <- original %>%
+  select(line, station_name, station_latitude:entry, vending, ada) %>%
+  mutate(entry = recode(entry, "YES" = TRUE, "NO" = FALSE))
+head(nyc_transit)
+```
+
+The original dataset contains `r nrow(original)` rows and `r ncol(original)` columns, namely: Division,	Line,	Station Name,	Station Latitude,	Station Longitude,	Route1,	Route2,	Route3,	Route4,	Route5,	Route6,	Route7,	Route8,	Route9,	Route10,	Route11,	Entrance Type,	Entry, Exit Only, Vending,	Staffing,	Staff Hours,	ADA,	ADA Notes, Free Crossover,	North South Street,	East West Street,	Corner,	Entrance Latitude,	Entrance Longitude,	Station Location and Entrance Location. Out of these variables, I retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance.
+
+The cleaned dataset contains `r nrow(nyc_transit)` rows and `r ncol(nyc_transit)` columns. For data cleaning, I first clean the names of data using janitor package, then only select the required variables, and change the entry variable from character to logical variables. The data is not very clean because the route variables can be further reorganized. At the same time, some ofthe variable names contain double and have not been changed yet.
+
+- number of distinct station
+
+```{r}
+nyc_transit %>%
+  distinct(line, station_name) %>%
+  nrow()
+```
+
+There are 465 distinct stations.
+
+- number of ADA compliant stations
+
+```{r}
+nyc_transit %>%
+  filter(ada == TRUE) %>%
+  distinct(line, station_name) %>%
+  nrow()
+```
+
+There are 84 ADA compliant stations.
+
+- proportion of station entrances / exits without vending 
+
+```{r}
+nyc_transit %>%
+  filter(vending == "NO") %>%
+  pull(entry)%>%
+  mean()
+```
+
+There are 37.7% of the stations entrances / exits without vending.
+
+- number of stations serving A
+```{r}
+# first change all the route names to character
+refored_nyc_transit = mutate(nyc_transit,across(route1:route11, as.character))
+
+refored_nyc_transit %>%
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route") %>% 
+  filter(route == "A") %>% 
+  select(station_name, line) %>% 
+  distinct %>% 
+  nrow()
+```
+There are 60 stations serving A
+
+- A train with ADA compliant
+```{r}
+refored_nyc_transit %>% 
+  pivot_longer(route1:route11, names_to = "route_num", values_to = "route") %>%
+  filter(route == "A", ada == TRUE) %>% 
+  select(station_name, line) %>% 
+  distinct() %>%
+  nrow()
+```
+
+There are 17 stations serving A with ADA compliant.
