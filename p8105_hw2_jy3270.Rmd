@@ -95,3 +95,73 @@ refored_nyc_transit %>%
 ```
 
 There are 17 stations serving A with ADA compliant.
+
+# Problem 2
+#### read in data
+```{r}
+mrtw <- read_excel("./Trash Wheel Collection Data.xlsx", skip = 1, 
+                   sheet = "Mr. Trash Wheel", 
+                   range = cellranger::cell_cols("A:N")) %>%
+                   janitor::clean_names()
+```
+
+- clean data
+```{r}
+tidy_mrtw <- mrtw %>%
+  mutate(sports_balls = as.integer(sports_balls)) %>%
+  mutate(type = "Mr.Trash Wheel") %>%
+  mutate(year = as.integer(year), dumpster = as.integer(dumpster)) %>%
+  select(everything(), weight = weight_tons,volume = volume_cubic_yards) %>%
+  drop_na(dumpster)
+tidy_mrtw 
+```
+
+- use similar process to read and clean professor Trash Wheel
+#### read in professor data
+```{r}
+prtw <- read_excel("./Trash Wheel Collection Data.xlsx", skip = 1, 
+                   sheet = "Professor Trash Wheel", 
+                   range = cellranger::cell_cols("A:M")) %>%  
+                   janitor::clean_names()
+```
+
+- clean data
+```{r}
+tidy_prtw <- prtw %>%
+  mutate(type = "Professor Trash Wheel") %>%
+  mutate(year = as.integer(year), dumpster = as.integer(dumpster)) %>%
+  select(everything(), weight = weight_tons,volume = volume_cubic_yards) %>%
+  drop_na(dumpster)
+tidy_prtw 
+```
+Since there is no sports_ball variable in professor trash wheel sheet, we need to add a column for further combination of table
+- Combine two dataset
+
+```{r}
+tidy_prtw$sports_balls = NA
+merged_tw = rbind(tidy_mrtw,tidy_prtw)
+head(merged_tw)
+```
+
+The combined dataset contains `r nrow(merged_tw)` rows and `r ncol(merged_tw)` columns. There are in total `r nrow(merged_tw)` observations in the combined dataset. There is a new column named `type` variable specifies the vessel that the observation belongs to. The key variables include: dumpster number, month, year, date, weight, volume, different kinds of trash and number, and homes powered by trash-made electricity. 
+
+Mr. trash wheel contains ```r nrow(mrtw)``` number of data and Professor trash wheel contains ```r nrow(prtw)``` number of data. 
+
+There are also several key values such as the weight of dumpster, which have a total weight og total of ```r sum(merged_tw$weight)``` tons. For the data collected by Mr Trash wheel, the total weight is ```r sum(filter(merged_tw,type == "Mr.Trash Wheel")$weight)``` tons, and Prof Trash wheel has a sum of ```r sum(filter(merged_tw,type == "Professor Trash Wheel")$weight)``` tons. The total volume of dumpsters is ```r sum(merged_tw$volume)``` cubic yards. The part collected by Mr Trash wheel, the total volume is ```r sum(filter(merged_tw,type == "Mr.Trash Wheel")$volume)``` cubic yards whereas Prof Trash wheel has a total of ```r sum(filter(merged_tw,type == "Professor Trash Wheel")$volume)``` cubic yards. 
+
+The total weight of trash collected by Professor Trash Wheel is 190.12
+```{r}
+merged_tw %>%
+  filter(type == "Professor Trash Wheel") %>%
+  select(weight) %>%
+  sum()
+```
+
+The total number of sports balls collected by Mr. Trash Wheel in 2020 is 856
+```{r}
+merged_tw %>%
+  filter(year == 2020, type == "Mr.Trash Wheel") %>%
+  select(sports_balls) %>%
+  sum()
+```
+
