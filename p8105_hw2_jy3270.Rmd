@@ -313,12 +313,7 @@ arrange(year, month)
 ## Step 4 
 - combine data
 ```{r}
-<<<<<<< HEAD
 merge_df = left_join(tidy_pol, tidy_snp) %>% left_join(tidy_unemp)
-=======
-merge_df = left_join(tidy_pol, tidy_snp, by = c("year", "month"))
-final_merge_df = left_join(merge_df, tidy_unemp, by = c("year", "month"))
->>>>>>> 19cb152f802c447dc4cc6cbc4577cca0de913059
 head(merge_df)
 ```
 
